@@ -20,8 +20,28 @@ defmodule Iota.Node do
 		{:error, x}
 	end
 
-	defp query_node(node_addr, command) do
-		body = Poison.encode!(%{command: command}, [])
+	defp decode_tips(%HTTPotion.Response{} = response) do
+		case Poison.decode(response.body, as: %{"hashes" => [String]}) do
+			{:ok, tips} -> tips["hashes"]
+			error       -> error
+		end
+	end
+	defp decode_tips(_ = x) do
+		{:error, x}
+	end
+
+	defp decode_trytes(%HTTPotion.Response{} = response) do
+	case Poison.decode(response.body, as: %{"trytes" => [String]}) do
+			{:ok, trytes} -> trytes["trytes"]
+			error         -> error
+		end
+	end
+	defp decode_trytes(_ = x) do
+		{:error, x}
+	end
+
+	defp query_node(node_addr, command, params \\ %{}) do
+		body = Poison.encode!(Map.put(params, :command, command), [])
 
 		HTTPotion.post(node_addr, [body: body, headers: ["Content-Type": "application/json"]])
 	end
@@ -35,5 +55,29 @@ defmodule Iota.Node do
 			|> query_node("getNodeInfo")
 			|> decode_node_info
 		{:reply, info_or_err, state}
+	end
+	@doc """
+	Query the IOTA node for its list of tips
+	"""
+	def handle_call(:tips, _from, state) do
+		[node_addr | _] = state
+		tips_or_err = node_addr
+			|> query_node("getTips")
+			|> decode_tips
+		{:reply, tips_or_err, state}
+	end
+
+	@doc """
+	Query the IOTA node for the trytes associated with the transaction hashes
+	passed as an argument. Example:
+
+		GenServer.call(node_pid, {:trytes, ["RGCOQVMOACOZJMEQUIUP9TEITW9KWTWILKDRXTFVKXBIJTNCQXJXTGAVITPWZO9QLHWYBERNMLHHZ9999"]})
+	"""
+	def handle_call({:trytes, hashes}, _from, state) when is_list(hashes) do
+		[node_addr | _] = state
+		trytes_or_err = node_addr
+			|> query_node("getTrytes", %{"hashes" => hashes})
+			|> decode_trytes
+		{:reply, trytes_or_err, state}
 	end
 end

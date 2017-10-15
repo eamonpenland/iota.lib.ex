@@ -6,19 +6,23 @@ defmodule Iota.Utils do
 
 	@tryte_symbols "9ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+	@tryte_encoding_error		"Invalid character in tryte-encoded string"
+	@invalid_string_error		"Invalid string"
+	@invalid_tryte_length_error "Invalid tryte length"
+
+	defp nibble_to_integer(57), do: 0
+	defp nibble_to_integer(nibble) when nibble in 65..90, do: nibble - 65 + 1
+	defp nibble_to_integer(_), do: {:error, @tryte_encoding_error}
+
 	@spec as_trinary(0..26) :: String.t
 	defp as_trinary(n) do
 		String.at(@tryte_symbols, n)
 	end
 
-	@spec as_tryte(integer) :: String.t
-	defp as_tryte(n) do
-		if n >= 27 do
-			as_trinary(rem n, 27) <> as_tryte(div n, 27)
-		else
-			as_trinary n
+	@spec byte_as_tryte(0..255) :: String.t
+	defp byte_as_tryte(n) when n in 0..255 do
+		as_trinary(rem n, 27) <> as_trinary(div n, 27)
 		end
-	end
 
 	@doc """
 	Returns a tryte-encoded version of string argument `str`. This will handle
@@ -26,6 +30,27 @@ defmodule Iota.Utils do
 	"""
 	@spec as_trytes(String.t) :: String.t
 	def as_trytes(str) when is_bitstring(str) do
-		Enum.reduce String.to_charlist(str), "", fn (c,s) -> s <> as_tryte(c) end
+		byte_list = for <<c::8 <- str>>, do: c
+		Enum.reduce byte_list, "", fn (c,s) -> s <> byte_as_tryte(c) end
+	end
+
+	defp as_binary(<<>>), do: <<>>
+	defp as_binary(trytes) do
+		<<l, h, rest::binary>> = trytes
+		<<nibble_to_integer(l) + 27 * nibble_to_integer(h)>> <> as_binary(rest)
+	end
+
+	@spec as_string(String.t) :: String.t
+	def as_string(trytes) do
+		if rem(String.length(trytes), 2) != 0 do
+			{:error, @invalid_tryte_length_error}
+		else
+			if trytes =~ ~r{^[A-Z9]*$} do
+				b = as_binary trytes
+				if String.valid?(b), do: b, else: {:error, @invalid_string_error}
+			else
+				{:error, @tryte_encoding_error}
+			end
+		end
 	end
 end

@@ -43,7 +43,7 @@ defmodule Iota.Node do
 	defp query_node(node_addr, command, params \\ %{}) do
 		body = Poison.encode!(Map.put(params, :command, command), [])
 
-		HTTPotion.post(node_addr, [body: body, headers: ["Content-Type": "application/json"]])
+		HTTPotion.post(node_addr, [body: body, timeout: 30000, headers: ["Content-Type": "application/json"]])
 	end
 
 	@doc """

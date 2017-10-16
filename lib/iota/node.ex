@@ -40,6 +40,16 @@ defmodule Iota.Node do
 		{:error, x}
 	end
 
+	defp decode_tta(%HTTPotion.Response{} = response) do
+		case Poison.decode(response.body) do
+			{:ok, tta} -> {tta["trunkTransaction"], tta["branchTransaction"]}
+			error       -> error
+		end
+	end
+	defp decode_tta(_ = x) do
+		{:error, x}
+	end
+
 	defp query_node(node_addr, command, params \\ %{}) do
 		body = Poison.encode!(Map.put(params, :command, command), [])
 
@@ -79,5 +89,21 @@ defmodule Iota.Node do
 			|> query_node("getTrytes", %{"hashes" => hashes})
 			|> decode_trytes
 		{:reply, trytes_or_err, state}
+	end
+
+	@doc """
+	Query the IOTA node for a trunk and branch transaction.
+	Example:
+
+		{trunk, branch} = GenServer.call(node_pid, {:transactions_to_approve, 27}, :infinity)
+	
+	`:infinity` is here because the query take more time than the default 5s given by GenServer.
+	"""
+	def handle_call({:transactions_to_approve, depth}, _from, state) when is_integer(depth) do
+		[node_addr | _] = state
+		tta_or_err = node_addr
+			|> query_node("getTransactionsToApprove", %{"depth" => depth})
+			|> decode_tta
+		{:reply, tta_or_err, state}
 	end
 end

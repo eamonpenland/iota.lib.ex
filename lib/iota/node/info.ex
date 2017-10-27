@@ -7,6 +7,14 @@ defmodule Iota.Node.Info do
 
 	# NOTE: at this stage, poison doesn't support renaming fields so I have
 	# to use CamelCase in the structure name.
-	defstruct appName: "", appVersion: "", time: 0, neighbors: 0, tips: 0
-	@type t() :: %Iota.Node.Info{appName: String.t, appVersion: String.t, time: integer, neighbors: integer, tips: integer}
+	defstruct	appName: "",
+				appVersion: "",
+				time: 0,
+				neighbors: 0,
+				tips: 0,
+				latestMilestone: "",
+				latestMilestoneIndex: 0,
+				latestSolidSubtangleMilestone: "",
+				latestSolidSubtangleMilestoneIndex: 0
+	@type t() :: %Iota.Node.Info{appName: String.t, appVersion: String.t, time: integer, neighbors: integer, tips: integer, latestMilestone: String.t, latestMilestoneIndex: integer, latestSolidSubtangleMilestone: String.t, latestSolidSubtangleMilestoneIndex: integer}
 end

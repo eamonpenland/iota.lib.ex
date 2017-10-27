@@ -51,6 +51,16 @@ defmodule Iota.Node do
 		{:error, x}
 	end
 
+	defp decode_is(%HTTPotion.Response{} = response) do
+		case Poison.decode(response.body) do
+			{:ok, is} -> is["states"]
+			error     -> error
+		end
+	end
+	defp decode_is(_ = x) do
+		{:error, x}
+	end
+
 	defp query_node(node_addr, command, params \\ %{}) do
 		body = Poison.encode!(Map.put(params, :command, command), [])
 
@@ -107,4 +117,19 @@ defmodule Iota.Node do
 			|> decode_tta
 		{:reply, tta_or_err, state}
 	end
+
+	@doc """
+	Query the IOTA node for the inclusion state of passed transactions
+	Example:
+
+		[first|_] = GenServer.call(node_pid, {:inclusion_states, transactions, tips})
+	"""
+	def handle_call({:inclusion_states, transactions, tips}, _from, state) when is_list(transactions) and is_list(tips) do
+		[node_addr | _] = state
+		is_or_err = node_addr
+			|> query_node("getInclusionStates", %{"transactions" => transactions, "tips" => tips})
+			|> decode_is
+		{:reply, is_or_err, state}
+	end
+
 end

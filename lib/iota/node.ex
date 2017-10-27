@@ -4,7 +4,7 @@ defmodule Iota.Node do
 	@moduledoc """
 	Represents a process to interface with a IOTA node
 	"""
-	@default_iota_node "https://node.tangle.works:443"
+	@iota_api_version  "1.4.1.1"
 
 	def start_link(options) do
 		GenServer.start_link(__MODULE__, [options[:node_url] || @default_iota_node])
@@ -53,7 +53,7 @@ defmodule Iota.Node do
 	defp query_node(node_addr, command, params \\ %{}) do
 		body = Poison.encode!(Map.put(params, :command, command), [])
 
-		HTTPotion.post(node_addr, [body: body, timeout: 30000, headers: ["Content-Type": "application/json"]])
+		HTTPotion.post(node_addr, [body: body, timeout: 30000, headers: ["Content-Type": "application/json", "X-IOTA-API-Version": @iota_api_version]])
 	end
 
 	@doc """

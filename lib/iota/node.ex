@@ -61,6 +61,16 @@ defmodule Iota.Node do
 		{:error, x}
 	end
 
+	defp decode_balances(%HTTPotion.Response{} = response) do
+		case Poison.decode(response.body) do
+			{:ok, b} -> Map.delete(b, "duration")
+			error    -> error
+		end
+	end
+	defp decode_balances(_ = x) do
+		{:error, x}
+	end
+
 	defp query_node(node_addr, command, params \\ %{}) do
 		body = Poison.encode!(Map.put(params, :command, command), [])
 
@@ -130,6 +140,26 @@ defmodule Iota.Node do
 			|> query_node("getInclusionStates", %{"transactions" => transactions, "tips" => tips})
 			|> decode_is
 		{:reply, is_or_err, state}
+	end
+
+	@doc """
+	Query the IOTA node for the balance of an array of addresses passed as argument
+	Example:
+
+		GenServer.call(node_pid, {:balances, ["FFUIAREGAAAHNTPJRGRFCNCNOTKTKPWJEGUDWQHZVVO9MTAXZIDMXBMWJXTLUBHNFNKYCCTQUXOUYFKX9"]})
+
+	Returns a map containing the balances in an array accessible through the `balances`
+	key. The order of balances is the  same as that of the `addresses` parameter array.
+	The map also contains a `milestone` and `milestoneIndex` field.
+	In the documentation, the threshold is required to be 100, so it is not passed as
+	an argument in that call.
+	"""
+	def handle_call({:balances, addresses}, _from, state) when is_list(addresses) do
+		[node_addr | _] = state
+		balances_or_err = node_addr
+			|> query_node("getBalances", %{"addresses" => addresses, "threshold" => 100})
+			|> decode_balances
+		{:reply, balances_or_err, state}
 	end
 
 end

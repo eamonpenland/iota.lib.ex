@@ -4,6 +4,7 @@ defmodule Iota.Node do
 	@moduledoc """
 	Represents a process to interface with a IOTA node
 	"""
+	@default_iota_node "http://devnode.peaq.io:14600"
 	@iota_api_version  "1.4.1.1"
 
 	def start_link(options) do

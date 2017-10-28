@@ -2,13 +2,23 @@ defmodule Iota.Node do
 	use GenServer
 
 	@moduledoc """
-	Represents a process to interface with a IOTA node
+	Represents a process to interface with a IOTA node.
+
+	Sample configuration:
+
+	config :iota_lib, :node_addr, "http://localhost:14265"
+
+	Sample use:
+	
+		{:ok, pid} = Iota.Node.start_link()
+		info = GenServer.call(pid, :node_info)
+		IO.puts info.latestMilestone
 	"""
 	@default_iota_node "http://devnode.peaq.io:14600"
 	@iota_api_version  "1.4.1.1"
 
-	def start_link(options) do
-		GenServer.start_link(__MODULE__, [options[:node_url] || @default_iota_node])
+	def start_link(options \\ []) do
+		GenServer.start_link(__MODULE__, [Application.get_env(:iota_lib, :node_addr) || @default_iota_node] ++ options)
 	end
 
 	defp decode_node_info(%HTTPotion.Response{} = response) do

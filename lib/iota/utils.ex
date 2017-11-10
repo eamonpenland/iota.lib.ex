@@ -10,6 +10,8 @@ defmodule Iota.Utils do
 	@invalid_string_error		"Invalid string"
 	@invalid_tryte_length_error "Invalid tryte length"
 
+	@transaction_trytes_size    2673
+
 	defp nibble_to_integer(57), do: 0
 	defp nibble_to_integer(nibble) when nibble in 65..90, do: nibble - 65 + 1
 	defp nibble_to_integer(_), do: {:error, @tryte_encoding_error}
@@ -51,6 +53,27 @@ defmodule Iota.Utils do
 			else
 				{:error, @tryte_encoding_error}
 			end
+		end
+	end
+
+	@spec as_transaction(String.t) :: Iota.Transaction.t | {atom, String.t}
+	def as_transaction(trytes) do
+		if String.length(trytes) == @transaction_trytes_size do
+			if String.match?(trytes, ~r/[9A-Z]{#{@transaction_trytes_size}}/) do
+				%Iota.Transaction{
+					signature: String.slice(trytes, 0..2186),
+					address: String.slice(trytes, 2187..2267),
+					bundle: String.slice(trytes, -324..-244),
+					trunk: String.slice(trytes, -243..-163),
+					branch: String.slice(trytes, -162..-82),
+					tag: String.slice(trytes, -81..-66),
+					nonce: String.slice(trytes, -27..-1)
+				}
+			else
+				{:error, "Not a trytes string"}
+			end
+		else
+			{:error, "Invalid transaction trytes length"}
 		end
 	end
 end

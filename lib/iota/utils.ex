@@ -56,6 +56,28 @@ defmodule Iota.Utils do
 		end
 	end
 
+	defp as_trits_helper(0, _), do: [0]
+	defp as_trits_helper(i, s) when is_integer(i) do
+		d = div(i,3)
+		r = rem(i,3)
+		{t, x} = if r == 2, do: {-1, d+1}, else: {r,d}
+		if x != 0, do: [t * s] ++ as_trits_helper(x, s), else: [t*s]
+	end
+
+	@doc """
+	Turns an integer into a list of trits.
+
+	    > Iota.Utils.as_trits(8)
+		[-1, 0, 1]
+
+	"""
+	@spec as_trits(integer) :: [-1..1]
+	def as_trits(num) when is_integer(num) do
+		sign = if num > 0, do: 1, else: -1
+		abs_num = abs(num)
+		as_trits_helper(abs_num, sign)
+	end
+
 	@spec as_transaction(String.t) :: Iota.Transaction.t | {atom, String.t}
 	def as_transaction(trytes) do
 		if String.length(trytes) == @transaction_trytes_size do

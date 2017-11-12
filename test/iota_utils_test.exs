@@ -55,4 +55,49 @@ defmodule Iota.Utils.Test do
 		assert Iota.Utils.as_string("A9") == <<1>>
 		assert Iota.Utils.as_string(Iota.Utils.as_trytes(<<1,127>>))
 	end
+
+	test "can turn an integer into a list of trits" do
+		out = Iota.Utils.as_trits(0)
+		assert length(out) == 1
+		assert hd(out) == 0
+
+		out = Iota.Utils.as_trits(1)
+		assert length(out) == 1
+		assert hd(out) == 1
+
+		out = Iota.Utils.as_trits(2)
+		assert length(out) == 2
+		assert hd(out) == -1
+
+		out = Iota.Utils.as_trits(-1)
+		assert length(out) == 1
+		assert hd(out) == -1
+
+		out = Iota.Utils.as_trits(-2)
+		assert length(out) == 2
+		assert hd(out) == 1
+
+		out = Iota.Utils.as_trits(-10)
+		assert length(out) == 3
+		[a, b, c] = out
+		assert a == -1
+		assert b == 0
+		assert c == -1
+
+		out = Iota.Utils.as_trits(8)
+		assert length(out) == 3
+		[a, b, c] = out
+		assert a == -1
+		assert b == 0
+		assert c == 1
+	end
+
+	test "always return a list of numbers in -1..1" do
+		for i <- -1000..1000 do
+			out = Iota.Utils.as_trits(i)
+			for t <- out do
+				assert (t >= -1 && t <= 1)
+			end
+		end
+	end
 end

@@ -100,4 +100,19 @@ defmodule Iota.Utils.Test do
 			end
 		end
 	end
+
+	test "string to trits conversion rejects a string with an odd length" do
+		assert {:error, _} = Iota.Utils.as_trits("A")
+	end
+
+	test "string to trits conversion rejects non-tryte-encoded string" do
+		assert {:error, _} = Iota.Utils.as_trits("$%")
+	end
+
+	test "string to trits conversion returns a list with a length multiple of 3" do
+		for n <- 1..1000 do
+			out = Iota.Utils.as_trits String.duplicate("A", n*2)
+			assert rem(length(out),3) == 0
+		end
+	end
 end

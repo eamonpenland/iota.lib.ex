@@ -12,6 +12,39 @@ defmodule Iota.Utils do
 
 	@transaction_trytes_size    2673
 
+	@tryte_to_trits {
+		[ 1,  0,  0],
+		[-1,  1,  0],
+		[ 0,  1,  0],
+		[ 1,  1,  0],
+		[-1, -1,  1],
+		[ 0, -1,  1],
+		[ 1, -1,  1],
+		[-1,  0,  1],
+		[ 0,  0,  1],
+		[ 1,  0,  1],
+		[-1,  1,  1],
+		[ 0,  1,  1],
+		[ 1,  1,  1],
+		[-1, -1, -1],
+		[ 0, -1, -1],
+		[ 1, -1, -1],
+		[-1,  0, -1],
+		[ 0,  0, -1],
+		[ 1,  0, -1],
+		[-1,  1, -1],
+		[ 0,  1, -1],
+		[ 1,  1, -1],
+		[-1, -1,  0],
+		[ 0, -1,  0],
+		[ 1, -1,  0],
+		[-1,  0,  0]
+	}
+
+	defp nibble_to_trits(57), do: [0,0,0]
+	defp nibble_to_trits(nibble) when nibble in 65..90, do: elem(@tryte_to_trits, nibble-65)
+	defp nibble_to_trits(_), do: {:error, @tryte_encoding_error}
+
 	defp nibble_to_integer(57), do: 0
 	defp nibble_to_integer(nibble) when nibble in 65..90, do: nibble - 65 + 1
 	defp nibble_to_integer(_), do: {:error, @tryte_encoding_error}
@@ -78,6 +111,34 @@ defmodule Iota.Utils do
 		as_trits_helper(abs_num, sign)
 	end
 
+	@doc """
+	Turns a tryte-encoded string into a list of trits. The string length
+	has to be a multiple of 2.
+
+	    > Iota.Utils.as_trits("CLOUD9")
+		[]
+	
+	"""
+	@spec as_trits(String.t) :: [-1..1] | {atom, String.t}
+	def as_trits(str) do
+		if rem(String.length(str),2) == 0 do
+			if str =~ ~r/^[9A-Z]+$/ do
+				Enum.flat_map to_charlist(str), fn c -> nibble_to_trits c end
+			else
+				{:error, @tryte_encoding_error}
+			end
+		else
+			{:error, "Invalid string length (must be a multiple of 2)"}
+		end
+	end
+
+	@doc """
+	Transforms a string of trytes returned by `:trytes` into a `Transaction` structure.
+
+	    > Iota.Utils.as_transaction("AHEAJD...")
+		%Iota.Transaction{...}
+
+	"""
 	@spec as_transaction(String.t) :: Iota.Transaction.t | {atom, String.t}
 	def as_transaction(trytes) do
 		if String.length(trytes) == @transaction_trytes_size do

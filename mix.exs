@@ -7,7 +7,10 @@ defmodule Iota.Mixfile do
      elixir: "~> 1.1-dev",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     package: package(),
+     description: "An Elixir wrapper around the IOTA node RPC API.",
+     deps: deps(),
+     docs: docs()]
   end
 
   # Configuration for the OTP application
@@ -29,7 +32,19 @@ defmodule Iota.Mixfile do
   defp deps do
     [
       {:httpotion, "~> 3.0.2"},
-      {:poison, "~> 3.1"}
+      {:poison, "~> 3.1"},
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
+  end
+
+  defp package() do
+    [files: ["lib", "config", "mix.exs", "README.md", "LICENSE"],
+      maintainers: ["Guillaume Ballet"],
+      licenses: ["Unlicense"],
+      links: %{"GitHub": "https://github.com/peaqio/iota.lib.ex"}]
+  end
+
+  defp docs do
+    [extras: ["README.md"]]
   end
 end

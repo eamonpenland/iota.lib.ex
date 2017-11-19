@@ -16,6 +16,7 @@ defmodule Iota.Transaction do
                 trunk:            String.duplicate("9", @digits_per_address),
                 branch:           String.duplicate("9", @digits_per_address),
                 tag:              String.duplicate("9", @digits_per_tag),
-                weight_magnitude: 0
-    @type t() :: %Iota.Transaction{address: String.t, bundle: String.t, nonce: String.t, signature: String.t, tag: String.t, branch: String.t, trunk: String.t, weight_magnitude: integer}
+                weight_magnitude: 0,
+                value:            0
+    @type t() :: %Iota.Transaction{address: String.t, bundle: String.t, nonce: String.t, signature: String.t, tag: String.t, branch: String.t, trunk: String.t, weight_magnitude: integer, value: integer}
 end

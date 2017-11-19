@@ -172,6 +172,7 @@ defmodule Iota.Utils do
 				%Iota.Transaction{
 					signature: String.slice(trytes, 0..2186),
 					address: String.slice(trytes, 2187..2267),
+					value: trytes_to_int(String.slice(trytes, 2268..2294)),
 					bundle: String.slice(trytes, -324..-244),
 					trunk: String.slice(trytes, -243..-163),
 					branch: String.slice(trytes, -162..-82),

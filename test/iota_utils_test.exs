@@ -115,4 +115,20 @@ defmodule Iota.Utils.Test do
 			assert rem(length(out),3) == 0
 		end
 	end
+
+	test "string to integer conversion of 9 returns 0" do
+		assert 0 = Iota.Utils.trytes_to_int("9")
+	end
+
+	test "string to integer conversion of M returns 13" do
+		assert 13 = Iota.Utils.trytes_to_int("M")
+	end
+
+	test "string to integer conversion of AB returns 55" do
+		assert 55 = Iota.Utils.trytes_to_int("AB")
+	end
+
+	test "string to integer conversion of an invalid string returns an error" do
+		assert {:error, _} = Iota.Utils.trytes_to_int("hello?")
+	end
 end

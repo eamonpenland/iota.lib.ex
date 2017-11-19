@@ -69,6 +69,32 @@ defmodule Iota.Utils do
 		Enum.reduce byte_list, "", fn (c,s) -> s <> byte_as_tryte(c) end
 	end
 
+	@doc """
+	Converts a string containing the heptavigesimal representation
+	of a tryte-encoded number into an integer.
+
+	    > Iota.Utils.trytes_to_int("9SISTERS")
+		205803034065
+
+	"""
+	@spec trytes_to_int(String.t) :: integer | {atom, String.t}
+	def trytes_to_int(str) do
+		if str =~ ~r/^[9A-Z]+$/ do
+			# "Big Endian" Heptavigesimal
+			beh = Enum.reverse to_charlist str
+
+			Enum.reduce beh, 0, fn (hep_vig, total) ->
+				trigit = case hep_vig do
+					x when x in 65..90 -> hep_vig-64
+					_                     -> 0
+				end
+				total * 27 + trigit
+			end
+		else
+			{:error, @tryte_encoding_error}
+		end
+	end
+
 	defp as_binary(<<>>), do: <<>>
 	defp as_binary(trytes) do
 		<<l, h, rest::binary>> = trytes
